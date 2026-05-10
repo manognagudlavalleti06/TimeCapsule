@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Time Capsule</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Poppins:wght@300;400&display=swap" rel="stylesheet">
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #16002b, #000);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Poppins', sans-serif;
+  color: #fff;
+  overflow: hidden;
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    120deg,
+    rgba(0,255,255,0.05),
+    rgba(0,255,255,0.05) 1px,
+    transparent 1px,
+    transparent 40px
+  );
+  animation: moveBg 12s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes moveBg {
+  to { transform: translateX(-240px); }
+}
+
+.container {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+  background: rgba(0,0,0,0.7);
+  border-radius: 16px;
+  box-shadow: 0 0 40px rgba(0,255,255,0.35);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(0,255,255,0.25);
+}
+
+h1 {
+  font-family: 'Orbitron', sans-serif;
+  text-align: center;
+  margin-bottom: 16px;
+  font-size: 22px;
+  color: #00ffff;
+  text-shadow: 0 0 10px #00ffff;
+}
+
+.field { margin-bottom: 10px; }
+
+label {
+  font-size: 12px;
+  color: #bffcff;
+}
+
+input, textarea, select {
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px;
+  background: rgba(0,0,0,0.6);
+  border-radius: 8px;
+  border: 1px solid rgba(0,255,255,0.35);
+  color: #fff;
+}
+
+textarea { height: 70px; resize: none; }
+
+.row { display: flex; gap: 8px; }
+
+button {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #00ffff, #9b00ff);
+  font-family: 'Orbitron', sans-serif;
+  cursor: pointer;
+}
+
+.watermark-bottom {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.4);
+  text-shadow: 0 0 6px rgba(0,255,255,0.35);
+  pointer-events: none;
+}
+
+.status {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.success { color: #00ffcc; }
+.error { color: #ff6b6b; }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>⏳ TIME CAPSULE</h1>
+
+  <div class="field">
+    <label>Email</label>
+    <input type="email" id="email">
+  </div>
+
+  <div class="field">
+    <label>Subject</label>
+    <input type="text" id="subject">
+  </div>
+
+  <div class="field">
+    <label>Message</label>
+    <textarea id="message"></textarea>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>Date</label>
+      <input type="date" id="unlock_date">
+    </div>
+    <div class="field">
+      <label>Time</label>
+      <input type="time" id="unlock_time">
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="field">
+      <label>Delay</label>
+      <input type="number" id="delay_value" placeholder="Optional">
+    </div>
+    <div class="field">
+      <label>Unit</label>
+      <select id="delay_unit">
+        <option value="sec">Sec</option>
+        <option value="min">Min</option>
+        <option value="hour">Hr</option>
+        <option value="day">Day</option>
+      </select>
+    </div>
+  </div>
+
+  <button onclick="storeMessage()">SEAL IN TIME</button>
+
+  <div class="watermark-bottom">
+    © Time Capsule • MANOGNA GUDLAVALLETI
+  </div>
+
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+async function storeMessage() {
+  const email = document.getElementById("email").value;
+  const subject = document.getElementById("subject").value;
+  const message = document.getElementById("message").value;
+  const date = document.getElementById("unlock_date").value;
+  const time = document.getElementById("unlock_time").value;
+  const status = document.getElementById("status");
+
+  let delay_value, delay_unit;
+
+  if (!email || !subject || !message) {
+    status.textContent = "⚠️ Fill all required fields";
+    status.className = "status error";
+    return;
+  }
+
+  /* OPTION 1: Date + Time */
+  if (date && time) {
+    const diffSeconds = Math.floor(
+      (new Date(`${date}T${time}`) - new Date()) / 1000
+    );
+
+    if (diffSeconds <= 0) {
+      status.textContent = "⚠️ Choose a future date & time";
+      status.className = "status error";
+      return;
+    }
+
+    delay_value = diffSeconds;
+    delay_unit = "sec";
+  }
+
+  /* OPTION 2: Delay input */
+  else {
+    delay_value = parseInt(document.getElementById("delay_value").value);
+    delay_unit = document.getElementById("delay_unit").value;
+
+    if (!delay_value || delay_value <= 0) {
+      status.textContent = "⚠️ Select date/time or delay";
+      status.className = "status error";
+      return;
+    }
+  }
+
+  try {
+    const res = await fetch(
+      "https://4vfddig2g4.execute-api.ap-south-1.amazonaws.com/manogna/capsule1?action=storemessage",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          subject,
+          message,
+          delay_value,
+          delay_unit
+        })
+      }
+    );
+
+    if (res.ok) {
+      status.textContent = "✅ Message stored successfully!";
+      status.className = "status success";
+    } else {
+      throw new Error();
+    }
+  } catch {
+    status.textContent = "❌ Failed to store message";
+    status.className = "status error";
+  }
+}
+</script>
+
+</body>
+</html>

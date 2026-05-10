@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Time Capsule</title>
+<style>
+        body { font-family: sans-serif; max-width: 500px; margin: 40px auto; padding: 20px; line-height: 1.6; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; }
+        input, textarea, select { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; cursor: pointer; width: 100%; }
+        button:hover { background-color: #0056b3; }
+        #status { margin-top: 20px; padding: 10px; display: none; }
+</style>
+</head>
+<body>
+ 
+    <h2>Send a Message to the Future</h2>
+<form id="capsuleForm">
+<div class="form-group">
+<label>Recipient Email:</label>
+<input type="email" id="email" required placeholder="example@mail.com">
+</div>
+ 
+        <div class="form-group">
+<label>Subject:</label>
+<input type="text" id="subject" required placeholder="A message from the past...">
+</div>
+ 
+        <div class="form-group">
+<label>Message:</label>
+<textarea id="message" rows="5" required></textarea>
+</div>
+ 
+        <div class="form-group">
+<label>Delay Amount:</label>
+<input type="number" id="delay_value" min="1" required>
+</div>
+ 
+        <div class="form-group">
+<label>Delay Unit:</label>
+<select id="delay_unit">
+<option value="min">Minutes</option>
+<option value="hour">Hours</option>
+<option value="day">Days</option>
+<option value="week">Weeks</option>
+<option value="month">Months</option>
+<option value="year">Years</option>
+</select>
+</div>
+ 
+        <button type="submit" id="submitBtn">Store Message</button>
+</form>
+ 
+    <div id="status"></div>
+ 
+    <script>
+        const API_URL = "https://4vfddig2g4.execute-api.ap-south-1.amazonaws.com/manogna/capsule1?action=storemessage";
+ 
+        document.getElementById('capsuleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const statusDiv = document.getElementById('status');
+            const btn = document.getElementById('submitBtn');
+ 
+            // Collect Data
+            const data = {
+                email: document.getElementById('email').value,
+                subject: document.getElementById('subject').value,
+                message: document.getElementById('message').value,
+                delay_value: parseInt(document.getElementById('delay_value').value),
+                delay_unit: document.getElementById('delay_unit').value
+            };
+ 
+            // Show loading state
+            btn.disabled = true;
+            statusDiv.style.display = "block";
+            statusDiv.innerText = "Processing...";
+            statusDiv.style.backgroundColor = "#eee";
+ 
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+ 
+                if (response.ok) {
+                    statusDiv.innerText = "Success! Your message has been stored in the time capsule.";
+                    statusDiv.style.backgroundColor = "#d4edda";
+                    document.getElementById('capsuleForm').reset();
+                } else {
+                    throw new Error('Failed to store message');
+                }
+            } catch (error) {
+                statusDiv.innerText = "Error: " + error.message;
+                statusDiv.style.backgroundColor = "#f8d7da";
+            } finally {
+                btn.disabled = false;
+            }
+        });
+</script>
+</body>
+</html>
